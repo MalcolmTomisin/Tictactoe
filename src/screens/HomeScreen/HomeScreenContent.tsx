@@ -1,154 +1,68 @@
-import { ReactNode } from 'react';
-import {
-  Image,
-  Platform,
-  StyleSheet,
-  TextProps,
-  Text as UnStyledText,
-  View,
-} from 'react-native';
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable react/no-array-index-key */
+import { useState } from 'react';
+import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
+import { Image } from 'expo-image';
 
 // TODO: sample, remove
 export default function HomeScreenContent() {
+  const [boxes, setBoxes] = useState<
+    Array<Array<{ id: number; value: null | 'x' | 'o' }>>
+  >(
+    new Array(3).fill(0).map(() =>
+      Array.from({ length: 3 }, (_, i) => ({ id: i, value: null }))
+    ),
+  );
+
+  const [currentPlayer, setCurrentPlayer] = useState<'x' | 'o'>('x');
   return (
     <>
       <Image
         source={{
-          uri: 'https://github.com/user-attachments/assets/4cb9fb46-6c96-4ac0-b7f9-8560e44e11d1',
+          uri: 'https://upload.wikimedia.org/wikipedia/commons/3/32/Tic_tac_toe.svg',
         }}
-        width={130}
-        height={130}
         style={{
           alignSelf: 'center',
-          marginTop: 42,
+          marginTop: 20,
+          width: 150,
+          height: 150,
         }}
         accessibilityIgnoresInvertColors
       />
-      <Text
-        style={[styles.paragraph, styles.centered]}
-        accessibilityRole="header"
-      >
-        Welcome to your new app! Here are some notes and tips to get you
-        started.
-      </Text>
 
-      <View style={styles.card}>
-        <Text>
-          <Text style={styles.bold}>We set some things up for you:</Text> Expo,
-          TanStack Query, Testing Library, React Navigation, and more!
-        </Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.bold}>Some notes about organization</Text>
-        <View style={styles.orgBullets} accessibilityRole="list">
-          <BulletListItem>
-            Reusable components go in{' '}
-            <UnStyledText style={styles.inlineCode}>
-              src/components
-            </UnStyledText>
-          </BulletListItem>
-
-          <BulletListItem>
-            Screens go in{' '}
-            <UnStyledText style={styles.inlineCode}>
-              {'src/screens/{MyScreen}/{MyScreen}.tsx'}
-            </UnStyledText>
-          </BulletListItem>
-
-          <BulletListItem>
-            Screen-specific code goes in{' '}
-            <UnStyledText style={styles.inlineCode}>
-              {'src/screens/{MyScreen}'}
-            </UnStyledText>
-          </BulletListItem>
-
-          <BulletListItem>
-            Navigation code goes in{' '}
-            <UnStyledText style={styles.inlineCode}>
-              src/navigators
-            </UnStyledText>
-          </BulletListItem>
-
-          <BulletListItem>
-            Tests are co-located with code. Eg.{' '}
-            <UnStyledText style={styles.inlineCode}>
-              {'__tests__/{MyComponent}.test.tsx'}
-            </UnStyledText>
-          </BulletListItem>
+      <View style={[styles.card, styles.centeredView]}>
+        <View>
+          {boxes.map((row, rowIndex) => (
+            <View style={{ flexDirection: 'row' }} key={rowIndex}>
+              {row.map((box, boxIndex) => (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  onPress={(e) => {
+                    if (e.currentTarget) {
+                      const newBoxes = [...boxes];
+                      newBoxes[rowIndex][boxIndex] = {
+                        ...newBoxes[rowIndex][boxIndex],
+                        value: currentPlayer,
+                      };
+                      setBoxes(newBoxes);
+                      setCurrentPlayer(currentPlayer === 'x' ? 'o' : 'x');
+                    }
+                  }}
+                  style={[styles.boxes, styles.centeredView]}
+                  key={`${rowIndex}${boxIndex}`}
+                >
+                  {Boolean(box.value) && <Text style={{fontSize: 35, fontWeight: 'bold'}}>{box.value}</Text>}
+                </TouchableOpacity>
+              ))}
+            </View>
+          ))}
         </View>
-      </View>
-
-      <View style={styles.card}>
-        <Text>
-          <Text style={styles.bold}>To add a new bottom tab</Text> head to{' '}
-          <Text style={styles.inlineCode}>TabNavigator.tsx</Text> and follow the
-          instructions commented there.
-        </Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text>
-          <Text style={styles.bold}>To add a new screen</Text> head to the
-          screens directory and mount it in the appropriate stack.
-        </Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text>
-          Check out an <Text style={styles.bold}>example API call</Text> using
-          TanStack Query in{' '}
-          <Text style={styles.inlineCode}>AboutScreen.tsx</Text>.
-        </Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text>
-          Check out <Text style={styles.bold}>a sample test</Text> in{' '}
-          <Text style={styles.inlineCode}>
-            src/__tests__/App.integration.test.tsx
-          </Text>
-          .
-        </Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text>
-          Sample code is marked with a{' '}
-          <Text style={styles.inlineCode}>“TODO”</Text> comment.{' '}
-          <Text style={styles.bold}>Search the codebase</Text> for{' '}
-          <Text style={styles.inlineCode}>“TODO”</Text> and remove any desired
-          sample code.
-        </Text>
       </View>
     </>
   );
 }
 
-function Text({ style, ...props }: TextProps) {
-  return <UnStyledText {...props} style={[styles.text, style]} />;
-}
-
-function BulletListItem({ children }: { children: ReactNode }) {
-  return (
-    <View style={styles.bulletItem}>
-      <Text style={styles.bullet}>{'\u2022'}</Text>
-      <Text style={styles.itemText}>{children}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  text: {
-    fontSize: 18,
-    lineHeight: 24,
-  },
-  paragraph: {
-    fontSize: 19,
-    lineHeight: 24,
-    marginBottom: 24,
-    marginTop: 12,
-  },
   card: {
     marginBottom: 18,
     backgroundColor: '#fefafa',
@@ -156,34 +70,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
   },
-  centered: {
+  centeredText: {
     textAlign: 'center',
   },
-  bulletItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 5,
+  centeredView: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  bullet: {
-    fontSize: 20,
-    lineHeight: 22,
-    marginRight: 8,
-  },
-  itemText: {
-    flex: 1,
-    fontSize: 17,
-    lineHeight: 22,
-  },
+  boxes: { width: 80, height: 80, borderWidth: 3 },
 
-  orgBullets: {
-    marginTop: 12,
-  },
-  inlineCode: {
-    fontFamily: Platform.OS === 'ios' ? 'Courier New' : 'monospace',
-    fontWeight: '500',
-    fontSize: 15,
-  },
-  bold: {
-    fontWeight: 'bold',
-  },
 });
