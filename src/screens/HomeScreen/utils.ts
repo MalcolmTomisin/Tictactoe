@@ -111,5 +111,9 @@ export const computeBoxBorder = (rowIndex: number, boxIndex: number) => {
       borderBottomWidth: isBottom ? 0 : 3,
       borderLeftWidth: isLeft ? 0 : 3,
       borderRightWidth: isRight ? 0 : 3,
+      borderTopLeftRadius: isTop && isLeft ? 10 : 0,
+      borderTopRightRadius: isTop && isRight ? 10 : 0,
+      borderBottomLeftRadius: isBottom && isLeft ? 10 : 0,
+      borderBottomRightRadius: isBottom && isRight ? 10 : 0,
     };
   };
