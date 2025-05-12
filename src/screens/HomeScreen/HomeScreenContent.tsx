@@ -3,12 +3,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text, Alert } from 'react-native';
 import { Image } from 'expo-image';
+import { RouteProp } from '@react-navigation/native';
+import { RootScreenProps } from 'src/navigators/types';
 
 const EMPTY = null;
 const HUMAN_PLAYER = 'X';
 const AI_PLAYER = 'O';
 
-export default function HomeScreenContent() {
+export default function HomeScreenContent({
+  route,
+}: {
+  route: RouteProp<RootScreenProps, 'Home'>;
+}) {
   const [boxes, setBoxes] = useState<
     Array<Array<{ id: number; value: null | 'X' | 'O' }>>
   >(
@@ -17,7 +23,7 @@ export default function HomeScreenContent() {
       .map(() => Array.from({ length: 3 }, (_, i) => ({ id: i, value: null }))),
   );
 
-  const [currentPlayer, setCurrentPlayer] = useState<'X' | 'O'>(HUMAN_PLAYER);
+  const [currentPlayer, setCurrentPlayer] = useState<'X' | 'O'>(route.params.player);
 
   const isHumanTurn = currentPlayer === HUMAN_PLAYER;
 
@@ -173,7 +179,6 @@ export default function HomeScreenContent() {
   ) => {
     return board.every((cell) => cell.value !== EMPTY);
   };
-
 
   return (
     <>

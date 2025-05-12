@@ -1,12 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import Screen from 'src/components/Screen';
 import { RootStackScreenProps } from 'src/navigators/types';
-import HomeScreenContent from './HomeScreenContent';
+import MenuScreenContent from './MenuScreenContent';
 
-export default function HomeScreen({route}: RootStackScreenProps<'Home'>) {
+export default function MenuScreen({navigation}: RootStackScreenProps<'Menu'>) {
   return (
-    <Screen>
-      <HomeScreenContent route={route} />
+    <Screen scroll={false}>
+      <MenuScreenContent navigation={navigation} />
       <StatusBar style="auto" />
     </Screen>
   );
