@@ -1,105 +1,38 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable react/no-array-index-key */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { RouteProp } from '@react-navigation/native';
 import { RootScreenProps } from 'src/navigators/types';
-
-const EMPTY = null;
-const HUMAN_PLAYER = 'X';
-const AI_PLAYER = 'O';
+import {
+  AI_PLAYER,
+  HUMAN_PLAYER,
+  findBestMove,
+  checkWinner,
+  isBoardFull,
+  computeBoxBorder,
+  Grid,
+} from './utils';
 
 export default function HomeScreenContent({
   route,
 }: {
   route: RouteProp<RootScreenProps, 'Home'>;
 }) {
-  const [boxes, setBoxes] = useState<
-    Array<Array<{ id: number; value: null | 'X' | 'O' }>>
-  >(
+  const [boxes, setBoxes] = useState<Grid>(
     new Array(3)
       .fill(0)
-      .map(() => Array.from({ length: 3 }, (_, i) => ({ id: i, value: null }))),
+      .map((m, v) =>
+        Array.from({ length: 3 }, (_, i) => ({ id: 3 * v + i, value: null })),
+      ),
   );
 
-  const [currentPlayer, setCurrentPlayer] = useState<'X' | 'O'>(route.params.player);
+  const [currentPlayer, setCurrentPlayer] = useState<'X' | 'O'>(
+    route.params.player,
+  );
 
   const isHumanTurn = currentPlayer === HUMAN_PLAYER;
-
-  const evaluate = useCallback(
-    (
-      b: {
-        id: number;
-        value: null | 'X' | 'O';
-      }[],
-    ) => {
-      if (checkWinner(b, AI_PLAYER)) return +10;
-      if (checkWinner(b, HUMAN_PLAYER)) return -10;
-      return 0;
-    },
-    [],
-  );
-
-  const minimax = useCallback(
-    (
-      newBoard: {
-        id: number;
-        value: null | 'X' | 'O';
-      }[],
-      depth: number,
-      isMaximizing: boolean,
-    ): number => {
-      const score = evaluate(newBoard);
-      if (score !== 0) return score - depth; // Prefer faster win
-      if (isBoardFull(newBoard)) return 0;
-
-      if (isMaximizing) {
-        let best = -Infinity;
-        for (let i = 0; i < 9; i += 1) {
-          if (newBoard[i].value === EMPTY) {
-            newBoard[i].value = AI_PLAYER;
-            best = Math.max(best, minimax(newBoard, depth + 1, false));
-            newBoard[i].value = EMPTY;
-          }
-        }
-        return best;
-      }
-      let best = +Infinity;
-      for (let i = 0; i < 9; i += 1) {
-        if (newBoard[i].value === EMPTY) {
-          newBoard[i].value = HUMAN_PLAYER;
-          best = Math.min(best, minimax(newBoard, depth + 1, true));
-          newBoard[i].value = EMPTY;
-        }
-      }
-      return best;
-    },
-    [evaluate],
-  );
-
-  const findBestMove = useCallback(
-    (board: Array<Array<{ id: number; value: null | 'X' | 'O' }>>) => {
-      let bestVal = -Infinity;
-      let bestMove = -1;
-      const flatBoard = board.flat();
-
-      for (let i = 0; i < 9; i += 1) {
-        if (flatBoard[i].value === EMPTY) {
-          flatBoard[i].value = AI_PLAYER;
-          const moveVal = minimax(flatBoard, 0, false);
-          flatBoard[i].value = EMPTY;
-
-          if (moveVal > bestVal) {
-            bestMove = i;
-            bestVal = moveVal;
-          }
-        }
-      }
-      return bestMove;
-    },
-    [minimax],
-  );
 
   useEffect(() => {
     if (
@@ -137,7 +70,7 @@ export default function HomeScreenContent({
         ]);
       }
     }
-  }, [isHumanTurn, boxes, currentPlayer, findBestMove]);
+  }, [isHumanTurn, boxes, currentPlayer]);
 
   const resetGame = () => {
     setBoxes(
@@ -147,37 +80,6 @@ export default function HomeScreenContent({
           Array.from({ length: 3 }, (_, i) => ({ id: i, value: null })),
         ),
     );
-  };
-
-  const checkWinner = (
-    board: {
-      id: number;
-      value: null | 'X' | 'O';
-    }[],
-    player: string,
-  ) => {
-    const winPatterns = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8], // Rows
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8], // Columns
-      [0, 4, 8],
-      [2, 4, 6], // Diagonals
-    ];
-    return winPatterns.some((pattern) =>
-      pattern.every((index) => board[index].value === player),
-    );
-  };
-
-  const isBoardFull = (
-    board: {
-      id: number;
-      value: null | 'X' | 'O';
-    }[],
-  ) => {
-    return board.every((cell) => cell.value !== EMPTY);
   };
 
   return (
@@ -214,11 +116,29 @@ export default function HomeScreenContent({
                     setBoxes(newBoxes);
                     setCurrentPlayer(currentPlayer === 'X' ? 'O' : 'X');
                   }}
-                  style={[styles.boxes, styles.centeredView]}
+                  style={[
+                    styles.boxes,
+                    styles.centeredView,
+                    computeBoxBorder(rowIndex, boxIndex),
+                    {
+                      backgroundColor:
+                        box.value === 'X'
+                          ? '#FF6EC7'
+                          : box.value === 'O'
+                            ? '#BF00FF'
+                            : '#000000',
+                    },
+                  ]}
                   key={`${rowIndex}${boxIndex}`}
                 >
                   {Boolean(box.value) && (
-                    <Text style={{ fontSize: 35, fontWeight: 'bold' }}>
+                    <Text
+                      style={{
+                        fontSize: 35,
+                        fontWeight: 'bold',
+                        color: '#fff',
+                      }}
+                    >
                       {box.value}
                     </Text>
                   )}
@@ -251,21 +171,23 @@ export default function HomeScreenContent({
 const styles = StyleSheet.create({
   card: {
     marginBottom: 18,
-    backgroundColor: '#fefafa',
+    // backgroundColor: '#fefafa',
     paddingVertical: 18,
     paddingHorizontal: 12,
     borderRadius: 10,
   },
   centeredText: {
     textAlign: 'center',
+    color: '#fff',
   },
   centeredView: {
     justifyContent: 'center',
     alignItems: 'center',
   },
-  boxes: { width: 80, height: 80, borderWidth: 3 },
+  boxes: { width: 80, height: 80, borderWidth: 3, borderColor: '#fff' },
   turnText: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#fff',
   },
 });
