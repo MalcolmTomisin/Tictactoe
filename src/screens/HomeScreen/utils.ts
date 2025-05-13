@@ -2,6 +2,7 @@ export const EMPTY = null;
 export const HUMAN_PLAYER = 'X';
 export const AI_PLAYER = 'O';
 export type Grid = Array<Array<{ id: number; value: null | 'X' | 'O' }>>;
+export type FlattenedGrid = { id: number; value: "X" | "O" | null; }[];
 
 export const findBestMove = (board: Grid) => {
   let bestVal = -Infinity;
