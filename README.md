@@ -50,6 +50,8 @@ Trade-offs
 - UI Enhancements like animations
 
 ##### How to Run the App
+0. Ensure your pc/mac is set up for running RN/Expo apps. See https://reactnative.dev/docs/environment-setup
+
 1. Clone the repository:
 ```bash 
 git clone <repository-url> 
@@ -58,7 +60,7 @@ git clone <repository-url>
 ```bash 
 yarn 
 ```
-Run the app on a simulator:
+3. Run the app on a simulator:
 ```bash
 yarn ios
 ```
