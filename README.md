@@ -54,7 +54,7 @@ Trade-offs
 
 1. Clone the repository:
 ```bash 
-git clone <repository-url> 
+git clone git@github.com:MalcolmTomisin/Tictactoe.git 
 ```
 2. Install dependencies:
 ```bash 
@@ -68,7 +68,7 @@ yarn ios
 ##### How to Run the Tests
 1. Clone the repository:
 ```bash 
-git clone <repository-url> 
+git clone git@github.com:MalcolmTomisin/Tictactoe.git 
 ```
 2. Install dependencies:
 ```bash 
