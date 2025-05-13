@@ -182,7 +182,7 @@ export default function HomeScreenContent({
       </View>
       <View>
         <TouchableOpacity
-          accessibilityRole="button"
+          accessibilityRole="text"
           accessibilityLabel="Restart Game"
           accessibilityHint="Tap to restart the game"
           onPress={resetGame}
