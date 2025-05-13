@@ -23,6 +23,12 @@ const COLORS = {
   EMPTY: '#000000',
 };
 
+const grid = new Array(3)
+  .fill(0)
+  .map((m, v) =>
+    Array.from({ length: 3 }, (_, i) => ({ id: 3 * v + i, value: null })),
+  );
+
 export default function HomeScreenContent({
   route,
   navigation,
@@ -30,13 +36,7 @@ export default function HomeScreenContent({
   route: RouteProp<RootScreenProps, 'Home'>;
   navigation: NativeStackNavigationProp<RootScreenProps, 'Home', undefined>;
 }) {
-  const [boxes, setBoxes] = useState<Grid>(
-    new Array(3)
-      .fill(0)
-      .map((m, v) =>
-        Array.from({ length: 3 }, (_, i) => ({ id: 3 * v + i, value: null })),
-      ),
-  );
+  const [boxes, setBoxes] = useState<Grid>([...grid]);
 
   const [currentPlayer, setCurrentPlayer] = useState<'X' | 'O'>(
     route.params.player,
@@ -47,13 +47,7 @@ export default function HomeScreenContent({
   const isHumanTurn = currentPlayer === HUMAN_PLAYER;
 
   const resetGame = useCallback(() => {
-    setBoxes(
-      new Array(3)
-        .fill(0)
-        .map(() =>
-          Array.from({ length: 3 }, (_, i) => ({ id: i, value: null })),
-        ),
-    );
+    setBoxes([...grid]);
     setCurrentPlayer(route.params.player);
   }, [route.params.player]);
 
@@ -113,13 +107,8 @@ export default function HomeScreenContent({
         onPress: resetGame,
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isHumanTurn,
-    boxes,
-    currentPlayer,
-    resetGame,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHumanTurn, boxes, currentPlayer, resetGame]);
 
   const handleBoxPress = (rowIndex: number, boxIndex: number) => {
     const newBoxes = [...boxes];
@@ -131,7 +120,7 @@ export default function HomeScreenContent({
       value: currentPlayer,
     };
     setBoxes(newBoxes);
-    setCurrentPlayer(currentPlayer === 'X' ? 'O' : 'X');
+    setCurrentPlayer(currentPlayer === HUMAN_PLAYER ? AI_PLAYER : HUMAN_PLAYER);
   };
 
   return (
