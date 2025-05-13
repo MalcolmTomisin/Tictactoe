@@ -1,7 +1,13 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable react/no-array-index-key */
-import { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
+import { useState, useCallback, useLayoutEffect } from 'react';
+import {
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+} from 'react-native';
 import { Image } from 'expo-image';
 import { RouteProp } from '@react-navigation/native';
 import { RootScreenProps } from 'src/navigators/types';
@@ -36,7 +42,13 @@ export default function HomeScreenContent({
   route: RouteProp<RootScreenProps, 'Home'>;
   navigation: NativeStackNavigationProp<RootScreenProps, 'Home', undefined>;
 }) {
-  const [boxes, setBoxes] = useState<Grid>([...grid]);
+  const [boxes, setBoxes] = useState<Grid>(
+    new Array(3)
+      .fill(0)
+      .map((m, v) =>
+        Array.from({ length: 3 }, (_, i) => ({ id: 3 * v + i, value: null })),
+      ),
+  );
 
   const [currentPlayer, setCurrentPlayer] = useState<'X' | 'O'>(
     route.params.player,
@@ -47,11 +59,17 @@ export default function HomeScreenContent({
   const isHumanTurn = currentPlayer === HUMAN_PLAYER;
 
   const resetGame = useCallback(() => {
-    setBoxes([...grid]);
+    setBoxes(
+      new Array(3)
+        .fill(0)
+        .map((m, v) =>
+          Array.from({ length: 3 }, (_, i) => ({ id: 3 * v + i, value: null })),
+        ),
+    );
     setCurrentPlayer(route.params.player);
   }, [route.params.player]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (
       isBoardFull(flattenedBoxes) &&
       !checkWinner(flattenedBoxes, HUMAN_PLAYER) &&
@@ -66,35 +84,43 @@ export default function HomeScreenContent({
         autoHide: true,
         bottomOffset: 50,
         onPress: resetGame,
-        onHide: navigation.goBack,
+        onHide: () => {
+          resetGame();
+          navigation.goBack();
+        },
       });
     }
+    requestAnimationFrame(() => {
+      if (currentPlayer === AI_PLAYER) {
+        const move = findBestMove(boxes);
+        if (move !== -1) {
+          const row = Math.floor(move / 3);
+          const column = move % 3;
+          const newBoard = [...boxes];
+          newBoard[row][column].value = AI_PLAYER;
+          setBoxes(newBoard);
+          setCurrentPlayer(HUMAN_PLAYER);
 
-    if (currentPlayer === AI_PLAYER) {
-      const move = findBestMove(boxes);
-      if (move !== -1) {
-        const row = Math.floor(move / 3);
-        const column = move % 3;
-        const newBoard = [...boxes];
-        newBoard[row][column].value = AI_PLAYER;
-        setBoxes(newBoard);
-        setCurrentPlayer(HUMAN_PLAYER);
-
-        if (checkWinner(flattenedBoxes, AI_PLAYER)) {
-          Toast.show({
-            text1: 'Game Over',
-            text2: 'You lost!',
-            type: 'error',
-            position: 'bottom',
-            visibilityTime: 2500,
-            autoHide: true,
-            bottomOffset: 50,
-            onPress: resetGame,
-            onHide: navigation.goBack,
-          });
+          if (checkWinner(flattenedBoxes, AI_PLAYER)) {
+            Toast.show({
+              text1: 'Game Over',
+              text2: 'You lost!',
+              type: 'error',
+              position: 'bottom',
+              visibilityTime: 2500,
+              autoHide: true,
+              bottomOffset: 50,
+              onPress: resetGame,
+              onHide: () => {
+                resetGame();
+                navigation.goBack();
+              },
+            });
+          }
         }
       }
-    }
+    });
+
     if (checkWinner(flattenedBoxes, HUMAN_PLAYER)) {
       Toast.show({
         text1: 'Game Over',
@@ -104,11 +130,20 @@ export default function HomeScreenContent({
         visibilityTime: 3000,
         autoHide: true,
         bottomOffset: 50,
-        onPress: resetGame,
+        onPress: () => {
+          resetGame();
+          navigation.goBack();
+        },
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isHumanTurn, boxes, currentPlayer, resetGame]);
+  }, [
+    isHumanTurn,
+    boxes,
+    currentPlayer,
+    resetGame,
+    flattenedBoxes,
+    navigation,
+  ]);
 
   const handleBoxPress = (rowIndex: number, boxIndex: number) => {
     const newBoxes = [...boxes];
@@ -136,7 +171,7 @@ export default function HomeScreenContent({
       <View style={[styles.card, styles.centeredView]}>
         <View>
           {boxes.map((row, rowIndex) => (
-            <View style={{ flexDirection: 'row' }} key={rowIndex}>
+            <View style={styles.row} key={rowIndex}>
               {row.map((box, boxIndex) => (
                 <TouchableOpacity
                   accessibilityRole="button"
@@ -164,10 +199,13 @@ export default function HomeScreenContent({
           ))}
         </View>
       </View>
-      <View style={[styles.card, styles.centeredView]}>
+      <View style={[styles.card, styles.centeredView, styles.row]}>
         <Text style={styles.turnText}>
           Turn: {currentPlayer === HUMAN_PLAYER ? 'You' : 'AI is thinking...'}
         </Text>
+        {currentPlayer === AI_PLAYER && (
+          <ActivityIndicator size="large" color={COLORS[currentPlayer]} />
+        )}
       </View>
       <View>
         <TouchableOpacity
@@ -175,7 +213,7 @@ export default function HomeScreenContent({
           accessibilityLabel="Restart Game"
           accessibilityHint="Tap to restart the game"
           onPress={resetGame}
-          style={[styles.card, styles.centeredView]}
+          style={[styles.card, styles.centeredView, styles.maroonButton]}
         >
           <Text style={[styles.turnText, styles.centeredText]}>
             Restart Game
@@ -217,5 +255,9 @@ const styles = StyleSheet.create({
     fontSize: 35,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  row: { flexDirection: 'row' },
+  maroonButton: {
+    backgroundColor: '#990000',
   },
 });

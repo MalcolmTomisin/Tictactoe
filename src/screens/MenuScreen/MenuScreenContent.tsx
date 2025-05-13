@@ -9,7 +9,9 @@ export default function MenuScreenContent({
   navigation: NativeStackNavigationProp<RootScreenProps, 'Menu'>;
 }) {
   const handleButtonPress = (player: 'X' | 'O') => {
-    navigation.navigate('Home', { player });
+    requestAnimationFrame(() => {
+      navigation.navigate('Home', { player });
+    })
   };
 
   return (
@@ -34,7 +36,7 @@ export default function MenuScreenContent({
         <TouchableOpacity
           accessibilityRole="button"
           style={styles.purpleButton}
-          onPress={() => handleButtonPress('X')}
+          onPressIn={() => handleButtonPress('X')}
         >
           <Text style={styles.buttonLabel}>You go first</Text>
         </TouchableOpacity>
