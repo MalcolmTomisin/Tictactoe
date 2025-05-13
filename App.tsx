@@ -1,6 +1,7 @@
 import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { QueryClientProvider } from '@tanstack/react-query';
 import Providers, { Provider } from 'src/components/Providers';
+import Toast from 'react-native-toast-message';
 import RootNavigator from 'src/navigators/RootNavigator';
 import queryClient from 'src/util/api/queryClient';
 
@@ -19,6 +20,7 @@ export default function App() {
   return (
     <Providers providers={providers}>
       <RootNavigator />
+      <Toast />
     </Providers>
   );
 }
