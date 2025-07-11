@@ -1,6 +1,6 @@
 ### TicTacToe
 #### Overview
-This project is a simple implementation of the classic TicTacToe game. It allows users to play against an unbeatable AI. The game ends after every draw or loss, and users can restart the game or navigate back to the menu. This project is initialized with [**Belt**](https://github.com/thoughtbot/belt) a tool I helped build at thoughtbot, a commandline tool for scaffolding opinioniated expo apps.
+This project is a simple implementation of the classic TicTacToe game. It allows users to play against an unbeatable AI. The game ends after every draw or loss, and users can restart the game or navigate back to the menu. This project is initialized with [**Belt**](https://github.com/thoughtbot/belt), a commandline tool for scaffolding opinioniated expo apps.
 
 #### Features
 1. ##### Menu Screen:
