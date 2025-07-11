@@ -1,6 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies */
 /* eslint-disable react/no-array-index-key */
-import { useState, useCallback, useLayoutEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -11,29 +10,16 @@ import {
 import { Image } from 'expo-image';
 import { RouteProp } from '@react-navigation/native';
 import { RootScreenProps } from 'src/navigators/types';
-import Toast from 'react-native-toast-message';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  AI_PLAYER,
-  HUMAN_PLAYER,
-  findBestMove,
-  checkWinner,
-  isBoardFull,
-  computeBoxBorder,
-  Grid,
-} from './utils';
+import { AI_PLAYER, HUMAN_PLAYER, computeBoxBorder } from './utils';
+import { useGameState } from './useGameState';
+import { useGameLogic } from './useGameLogic';
 
 const COLORS = {
   X: '#FF6EC7',
   O: '#BF00FF',
   EMPTY: '#000000',
 };
-
-const grid = new Array(3)
-  .fill(0)
-  .map((m, v) =>
-    Array.from({ length: 3 }, (_, i) => ({ id: 3 * v + i, value: null })),
-  );
 
 export default function HomeScreenContent({
   route,
@@ -42,115 +28,29 @@ export default function HomeScreenContent({
   route: RouteProp<RootScreenProps, 'Home'>;
   navigation: NativeStackNavigationProp<RootScreenProps, 'Home', undefined>;
 }) {
-  const [boxes, setBoxes] = useState<Grid>(
-    new Array(3)
-      .fill(0)
-      .map((m, v) =>
-        Array.from({ length: 3 }, (_, i) => ({ id: 3 * v + i, value: null })),
-      ),
-  );
-
-  const [currentPlayer, setCurrentPlayer] = useState<'X' | 'O'>(
-    route.params.player,
-  );
-
-  const flattenedBoxes = boxes.flat();
-
-  const isHumanTurn = currentPlayer === HUMAN_PLAYER;
-
-  const resetGame = useCallback(() => {
-    setBoxes(
-      new Array(3)
-        .fill(0)
-        .map((m, v) =>
-          Array.from({ length: 3 }, (_, i) => ({ id: 3 * v + i, value: null })),
-        ),
-    );
-    setCurrentPlayer(route.params.player);
-  }, [route.params.player]);
-
-  useLayoutEffect(() => {
-    if (
-      isBoardFull(flattenedBoxes) &&
-      !checkWinner(flattenedBoxes, HUMAN_PLAYER) &&
-      !checkWinner(flattenedBoxes, AI_PLAYER)
-    ) {
-      Toast.show({
-        text1: 'Game Over',
-        text2: 'Draw!',
-        type: 'info',
-        position: 'bottom',
-        visibilityTime: 2500,
-        autoHide: true,
-        bottomOffset: 50,
-        onPress: resetGame,
-        onHide: () => {
-          resetGame();
-          navigation.goBack();
-        },
-      });
-    }
-    requestAnimationFrame(() => {
-      if (currentPlayer === AI_PLAYER) {
-        const move = findBestMove(boxes);
-        if (move !== -1) {
-          const row = Math.floor(move / 3);
-          const column = move % 3;
-          const newBoard = [...boxes];
-          newBoard[row][column].value = AI_PLAYER;
-          setBoxes(newBoard);
-          setCurrentPlayer(HUMAN_PLAYER);
-
-          if (checkWinner(flattenedBoxes, AI_PLAYER)) {
-            Toast.show({
-              text1: 'Game Over',
-              text2: 'You lost!',
-              type: 'error',
-              position: 'bottom',
-              visibilityTime: 2500,
-              autoHide: true,
-              bottomOffset: 50,
-              onPress: resetGame,
-              onHide: () => {
-                resetGame();
-                navigation.goBack();
-              },
-            });
-          }
-        }
-      }
-    });
-
-    if (checkWinner(flattenedBoxes, HUMAN_PLAYER)) {
-      Toast.show({
-        text1: 'Game Over',
-        text2: 'You win!',
-        type: 'success',
-        position: 'bottom',
-        visibilityTime: 3000,
-        autoHide: true,
-        bottomOffset: 50,
-        onPress: () => {
-          resetGame();
-          navigation.goBack();
-        },
-      });
-    }
-  }, [
-    isHumanTurn,
+  const {
     boxes,
+    setBoxes,
     currentPlayer,
+    setCurrentPlayer,
     resetGame,
     flattenedBoxes,
+  } = useGameState(route.params.player);
+
+  useGameLogic({
+    boxes,
+    currentPlayer,
+    flattenedBoxes,
+    isHumanTurn: currentPlayer === HUMAN_PLAYER,
+    setBoxes,
+    setCurrentPlayer,
+    resetGame,
     navigation,
-  ]);
+  });
 
   const handleBoxPress = (rowIndex: number, boxIndex: number) => {
-    if (!isHumanTurn) {
-      return;
-    }
     const newBoxes = [...boxes];
-    if (newBoxes[rowIndex][boxIndex].value) {
+    if (currentPlayer !== HUMAN_PLAYER || newBoxes[rowIndex][boxIndex].value) {
       return;
     }
     newBoxes[rowIndex][boxIndex] = {
@@ -158,7 +58,7 @@ export default function HomeScreenContent({
       value: currentPlayer,
     };
     setBoxes(newBoxes);
-    setCurrentPlayer(currentPlayer === HUMAN_PLAYER ? AI_PLAYER : HUMAN_PLAYER);
+    setCurrentPlayer(AI_PLAYER);
   };
 
   return (
