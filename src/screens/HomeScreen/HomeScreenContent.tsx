@@ -146,6 +146,9 @@ export default function HomeScreenContent({
   ]);
 
   const handleBoxPress = (rowIndex: number, boxIndex: number) => {
+    if (!isHumanTurn) {
+      return;
+    }
     const newBoxes = [...boxes];
     if (newBoxes[rowIndex][boxIndex].value) {
       return;
